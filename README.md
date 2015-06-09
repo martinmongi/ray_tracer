@@ -1,4 +1,7 @@
 # ray_tracer
+
+DISCLAIMER: Este proyecto es extremadamente experimental. Úselo bajo su propio riesgo.
+
 TP Final Orga2 Ray Tracer
 
 Este Trabajo Práctico está siendo desarrollado para presentar como Final de la materia Organización del Computador II de la carrera de Licenciatura en Ciencias de la Computación de FCEN-UBA.
@@ -6,6 +9,7 @@ Este Trabajo Práctico está siendo desarrollado para presentar como Final de la
 El principal objetivo es ver, mediante comparaciones de performance, el beneficio que se puede obtener con la utilización de instrucciones SIMD en una aplicación de este tipo. Para más información, contactar a martinmongi (at) gmail.com
 
 ==========================================================================
+DISCLAIMER: This project is extremely experimental. Use at your own risk.
 
 This project is meant to be presented as a final in the course Computer Architecture 201 of the FCEN-UBA.
 
