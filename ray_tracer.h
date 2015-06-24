@@ -9,7 +9,7 @@ typedef struct {
 } pixel;
 
 typedef struct {
-	double x, y, z;
+	float x, y, z;
 } vector;
 
 typedef struct {
@@ -25,12 +25,12 @@ public:
 class Material{
 public:
 	color diffuse;
-	double reflection;
+	float reflection;
 };
 
 class Sphere{
 public:
-	double r;
+	float r;
 	vector center;
 	Material mat;	
 };
@@ -44,7 +44,7 @@ public:
 class Camera{
 public:
 	int width, height;
-	double focal_distance;
+	float focal_distance;
 };
 
 class Triangle{
@@ -53,7 +53,7 @@ public:
 	Material mat;
 };
 
-double vector_dot_product(const vector a, const vector b){
+float vector_dot_product(const vector a, const vector b){
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
@@ -73,7 +73,7 @@ vector vector_sub(const vector a, const vector b){
 	return r;
 }
 
-vector vector_scale(const double k, const vector a){
+vector vector_scale(const float k, const vector a){
 	vector r;
 	r.x = a.x * k;
 	r.y = a.y * k;
@@ -81,21 +81,21 @@ vector vector_scale(const double k, const vector a){
 	return r;
 }
 
-double vector_2norm(const vector a){
+float vector_2norm(const vector a){
 	return pow(vector_dot_product(a,a),0.5);
 }
 
 bool ray_sphere_intersection(Ray r, Sphere s, vector &intersection){
-	double a = vector_dot_product(r.direction,r.direction);
+	float a = vector_dot_product(r.direction,r.direction);
 	vector vr = vector_sub(r.origin,s.center);
-	double b = 2 * vector_dot_product(r.direction, vr);
-	double c = vector_dot_product(vr,vr) - pow(s.r,2);
+	float b = 2 * vector_dot_product(r.direction, vr);
+	float c = vector_dot_product(vr,vr) - pow(s.r,2);
 	//printf("%f %f %f %f %f\n", r->direction.x, r->direction.y, a,b,c);
-	double disc = pow(b,2)-4*a*c;
+	float disc = pow(b,2)-4*a*c;
 	if (disc < 0) return false;
-	double sq_disc = pow(disc, 0.5);
+	float sq_disc = pow(disc, 0.5);
 
-	double root2 = (-b - sq_disc)/2/a;
+	float root2 = (-b - sq_disc)/2/a;
 	if(root2 >= 0){
 		intersection.x = r.origin.x + root2*r.direction.x;
 		intersection.y = r.origin.y + root2*r.direction.y;
@@ -176,12 +176,12 @@ Scene::Scene(char* ifilename){
 
 void Scene::Render(){
 
-	double relation = (double)cam.width/(double)cam.height;
-	double fd_sq = (double)cam.focal_distance*(double)cam.focal_distance;
-	double r_sq = relation*relation;
-	double window_height = pow(fd_sq/(r_sq + 1), 0.5);
-	double window_width = relation*window_height;
-	double step = window_width/(double)cam.width;
+	float relation = (float)cam.width/(float)cam.height;
+	float fd_sq = (float)cam.focal_distance*(float)cam.focal_distance;
+	float r_sq = relation*relation;
+	float window_height = pow(fd_sq/(r_sq + 1), 0.5);
+	float window_width = relation*window_height;
+	float step = window_width/(float)cam.width;
 
 	Ray tracer; //ba dum tss
 	tracer.origin.x = 0;
@@ -190,8 +190,8 @@ void Scene::Render(){
 
 	for(int i = 0; i < cam.height; i++){
 		for(int j = 0; j < cam.width; j++){
-			tracer.direction.x = step*((double)j + 0.5) - window_width/2;
-			tracer.direction.y = -step*((double)i + 0.5) + window_height/2;
+			tracer.direction.x = step*((float)j + 0.5) - window_width/2;
+			tracer.direction.y = -step*((float)i + 0.5) + window_height/2;
 			tracer.direction.z = cam.focal_distance;
 
 			vector intersection;
@@ -200,10 +200,10 @@ void Scene::Render(){
 				vector to_light = vector_sub(vec_lights[0].center, intersection);
 				//print_vector(&to_light);
 				vector normal = vector_sub(intersection,vec_spheres[0].center);
-				double coef = vector_dot_product(to_light, normal);
+				float coef = vector_dot_product(to_light, normal);
 				coef = coef/vector_2norm(to_light)/vector_2norm(normal);
 				if(coef > 0)
-					image[i][j].r = (unsigned char)((double)255 * coef);
+					image[i][j].r = (unsigned char)((float)255 * coef);
 				else
 					image[i][j].r = 0;
 				image[i][j].g = 0;
