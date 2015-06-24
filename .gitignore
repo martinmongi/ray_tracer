@@ -1,0 +1,6 @@
+*.in
+ray_tracer
+ray_tracer.sublime-project
+ray_tracer.sublime-workspace
+
+
