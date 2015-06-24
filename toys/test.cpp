@@ -2,7 +2,7 @@
 
 
 typedef struct {
-	double x, y, z;
+	float x, y, z, dummy;
 } vector;
 
 extern "C" {vector vector_sum(vector *destination, vector *a, vector *b);}
