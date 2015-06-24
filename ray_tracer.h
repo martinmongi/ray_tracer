@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cfloat>
+
+#define SPACE ' '
 
 typedef struct {
 	unsigned char r, g, b;
@@ -133,44 +136,58 @@ Scene::Scene(char* ifilename){
 	ifile >> ofilename;
 	ifile >> cam.width >> cam.height;
 	ifile >> cam.focal_distance;
+	pixel p;
+	p.r = 0;
+	p.g = 0;
+	p.b = 0;
 
 	for(unsigned int i = 0; i < cam.height; i++){
-		image.push_back(std::vector<pixel>(cam.width));
+		image.push_back(std::vector<pixel>(cam.width, p));
 	}
 
 	while(!ifile.eof()){
 		ifile >> line;
-
-		if(line[0] == '#') //comment
-			continue;
+		//std::cout << line << std::endl;
 
 		if(line == "light"){
 			Light l;
 			ifile >> l.center.x >> l.center.y >> l.center.z;
 			ifile >> l.intensity.r >> l.intensity.g >> l.intensity.b;
 			vec_lights.push_back(l);
-			continue;
 		}
 
 		if(line == "sphere"){
 			Sphere s;
+			int r,g,b;
 			ifile >> s.r;
 			ifile >> s.center.x >> s.center.y >> s.center.z;
-			ifile >> s.mat.diffuse.r >> s.mat.diffuse.g >> s.mat.diffuse.b >> s.mat.reflection;
+			ifile >> r >> g >> b >> s.mat.reflection;
+			// std::cout << SPACE << s.r << SPACE << std::endl;
+			// std::cout << SPACE << s.center.x << SPACE << s.center.y << SPACE << s.center.z << SPACE << std::endl;
+			// std::cout << SPACE << r << SPACE << g << SPACE << b << SPACE << s.mat.reflection << SPACE << std::endl;
+			s.mat.diffuse.r = (unsigned char)r;
+			s.mat.diffuse.g = (unsigned char)g;
+			s.mat.diffuse.b = (unsigned char)b;
 			vec_spheres.push_back(s);
-			continue;
 		}
 
 		if(line == "triangle"){
 			Triangle t;
+			int r,g,b;
 			ifile >> t.p1.x >> t.p1.y >> t.p1.z;
 			ifile >> t.p2.x >> t.p2.y >> t.p2.z;
 			ifile >> t.p3.x >> t.p3.y >> t.p3.z;
-			ifile >> t.mat.diffuse.r >> t.mat.diffuse.g >> t.mat.diffuse.b >> t.mat.reflection;
+			ifile >> r >> g >> b >> t.mat.reflection;
+			t.mat.diffuse.r = (unsigned char)r;
+			t.mat.diffuse.g = (unsigned char)g;
+			t.mat.diffuse.b = (unsigned char)b;
 			vec_triangles.push_back(t);
-			continue;
 		}
 	}
+
+	std::cout << "Encontradas " << vec_spheres.size() << " esferas.\n";
+	std::cout << "Encontrados " << vec_triangles.size() << " triangulos.\n";
+	std::cout << "Encontradas " << vec_lights.size() << " luces.\n";
 
 }
 
@@ -190,24 +207,37 @@ void Scene::Render(){
 
 	for(int i = 0; i < cam.height; i++){
 		for(int j = 0; j < cam.width; j++){
+			float nearest_object_distance = FLT_MAX;
+			float distance;
+
 			tracer.direction.x = step*((float)j + 0.5) - window_width/2;
 			tracer.direction.y = -step*((float)i + 0.5) + window_height/2;
 			tracer.direction.z = cam.focal_distance;
 
 			vector intersection;
-			bool ans = ray_sphere_intersection(tracer, vec_spheres[0], intersection);
-			if(ans){
-				vector to_light = vector_sub(vec_lights[0].center, intersection);
-				//print_vector(&to_light);
-				vector normal = vector_sub(intersection,vec_spheres[0].center);
-				float coef = vector_dot_product(to_light, normal);
-				coef = coef/vector_2norm(to_light)/vector_2norm(normal);
-				if(coef > 0)
-					image[i][j].r = (unsigned char)((float)255 * coef);
-				else
-					image[i][j].r = 0;
-				image[i][j].g = 0;
-				image[i][j].b = 0;
+
+			for(int sphere_i = 0; sphere_i < vec_spheres.size(); sphere_i++){
+				//std::cout << "Entra " << sphere_i << std::endl;
+				bool ans = ray_sphere_intersection(tracer, vec_spheres[sphere_i], intersection);
+				if(ans){
+
+					distance = vector_2norm(vector_sub(tracer.origin, intersection));
+					if(distance < nearest_object_distance){
+						
+						nearest_object_distance = distance;
+
+						vector to_light = vector_sub(vec_lights[sphere_i].center, intersection);
+						//print_vector(&to_light);
+						vector normal = vector_sub(intersection,vec_spheres[sphere_i].center);
+						float coef = vector_dot_product(to_light, normal);
+						coef = coef/vector_2norm(to_light)/vector_2norm(normal);
+						if(coef > 0){
+							image[i][j].r = (unsigned char)((float)vec_spheres[sphere_i].mat.diffuse.r * coef);
+							image[i][j].g = (unsigned char)((float)vec_spheres[sphere_i].mat.diffuse.g * coef);
+							image[i][j].b = (unsigned char)((float)vec_spheres[sphere_i].mat.diffuse.b * coef);
+						}
+					}
+				}
 			}
 		}
 	}
