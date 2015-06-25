@@ -8,26 +8,23 @@
 #define SPACE ' '
 
 typedef struct {
-	unsigned char r, g, b;
+	float r, g, b;
 } pixel;
 
 typedef struct {
 	float x, y, z;
 } vector;
 
-typedef struct {
-	unsigned char r,g,b;
-} color;
-
 class Light{
 public:
-	color intensity;
+	float intensity;
+	pixel color;
 	vector center;
 };
 
 class Material{
 public:
-	color diffuse;
+	pixel diffuse;
 	float reflection;
 };
 
@@ -152,22 +149,22 @@ Scene::Scene(char* ifilename){
 		if(line == "light"){
 			Light l;
 			ifile >> l.center.x >> l.center.y >> l.center.z;
-			ifile >> l.intensity.r >> l.intensity.g >> l.intensity.b;
+			ifile >> l.intensity;
+			ifile >> l.color.r >> l.color.g >> l.color.b;
+			std::cout << l.intensity << std::endl;
+			std::cout << l.color.r << SPACE << l.color.g << SPACE << l.color.b << std::endl;
+
 			vec_lights.push_back(l);
 		}
 
 		if(line == "sphere"){
 			Sphere s;
-			int r,g,b;
 			ifile >> s.r;
 			ifile >> s.center.x >> s.center.y >> s.center.z;
-			ifile >> r >> g >> b >> s.mat.reflection;
+			ifile >> s.mat.diffuse.r >> s.mat.diffuse.g >> s.mat.diffuse.b >> s.mat.reflection;
 			// std::cout << SPACE << s.r << SPACE << std::endl;
 			// std::cout << SPACE << s.center.x << SPACE << s.center.y << SPACE << s.center.z << SPACE << std::endl;
 			// std::cout << SPACE << r << SPACE << g << SPACE << b << SPACE << s.mat.reflection << SPACE << std::endl;
-			s.mat.diffuse.r = (unsigned char)r;
-			s.mat.diffuse.g = (unsigned char)g;
-			s.mat.diffuse.b = (unsigned char)b;
 			vec_spheres.push_back(s);
 		}
 
@@ -177,10 +174,8 @@ Scene::Scene(char* ifilename){
 			ifile >> t.p1.x >> t.p1.y >> t.p1.z;
 			ifile >> t.p2.x >> t.p2.y >> t.p2.z;
 			ifile >> t.p3.x >> t.p3.y >> t.p3.z;
-			ifile >> r >> g >> b >> t.mat.reflection;
-			t.mat.diffuse.r = (unsigned char)r;
-			t.mat.diffuse.g = (unsigned char)g;
-			t.mat.diffuse.b = (unsigned char)b;
+			ifile >> t.mat.diffuse.r >> t.mat.diffuse.g >> t.mat.diffuse.b >> t.mat.reflection;
+
 			vec_triangles.push_back(t);
 		}
 	}
@@ -226,15 +221,15 @@ void Scene::Render(){
 						
 						nearest_object_distance = distance;
 
-						vector to_light = vector_sub(vec_lights[sphere_i].center, intersection);
+						vector to_light = vector_sub(vec_lights[0].center, intersection);
 						//print_vector(&to_light);
 						vector normal = vector_sub(intersection,vec_spheres[sphere_i].center);
 						float coef = vector_dot_product(to_light, normal);
 						coef = coef/vector_2norm(to_light)/vector_2norm(normal);
 						if(coef > 0){
-							image[i][j].r = (unsigned char)((float)vec_spheres[sphere_i].mat.diffuse.r * coef);
-							image[i][j].g = (unsigned char)((float)vec_spheres[sphere_i].mat.diffuse.g * coef);
-							image[i][j].b = (unsigned char)((float)vec_spheres[sphere_i].mat.diffuse.b * coef);
+							image[i][j].r = vec_spheres[sphere_i].mat.diffuse.r * coef * vec_lights[0].intensity * vec_lights[0].color.r;
+							image[i][j].g = vec_spheres[sphere_i].mat.diffuse.g * coef * vec_lights[0].intensity * vec_lights[0].color.g;
+							image[i][j].b = vec_spheres[sphere_i].mat.diffuse.b * coef * vec_lights[0].intensity * vec_lights[0].color.b;
 						}
 					}
 				}
@@ -253,7 +248,7 @@ void Scene::WriteOutput(){
 
 	for(int i = 0; i < image.size(); i++){
 		for(int j = 0; j < image[0].size(); j++){
-			ofile << (int)image[i][j].r << " " << (int)image[i][j].g << " " << (int)image[i][j].b << " ";
+			ofile << (int)(image[i][j].r*255) << " " << (int)(image[i][j].g*255) << " " << (int)(image[i][j].b*255) << " ";
 		}
 		ofile << std::endl;
 	}
