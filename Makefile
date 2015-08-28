@@ -1,3 +1,3 @@
 all:
-	g++ ray_tracer.cpp -o ray_tracer -g -O3
+	gcc ray_tracer.c -o ray_tracer -g -Wall -O3
 
