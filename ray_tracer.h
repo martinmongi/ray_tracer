@@ -2,5 +2,5 @@
 #include <stdlib.h>
 
 typedef struct {
-	float r, g, b;
+	float r, g, b, padd;
 } pixel;
