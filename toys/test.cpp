@@ -1,6 +1,5 @@
 #include <cstdio>
 
-
 typedef struct {
 	float x, y, z, dummy;
 } vector;

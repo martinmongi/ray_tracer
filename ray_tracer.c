@@ -1,11 +1,18 @@
 #include "ray_tracer.h"
 
-#ifndef SYMBOL
+#ifndef imagepos
 #define pos(row, col, width) (row * width + col)
 #endif
 
-int main(int argc, char const *argv[])
+unsigned long long rdtscl(void)
 {
+    unsigned int lo, hi;
+    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));                        
+    return ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );  
+}
+
+int main(int argc, char const *argv[]){
+
 	if(argc < 3){
 		printf("Usage: %s input_file.in I\n", argv[0]);
 		printf("I =\t0 for C implementation\n");
@@ -25,8 +32,7 @@ int main(int argc, char const *argv[])
 		return 1;
 	}
 
-	int image_width, image_height, focal_distance;
-	unsigned int row, col;
+	int image_width, image_height/*, focal_distance*/;
 
 	//Image matrix allocation
 	if(fscanf(ifile, "%d %d", &image_width, &image_height) < 2){
@@ -37,15 +43,20 @@ int main(int argc, char const *argv[])
 	pixel* image = malloc(sizeof(pixel)*image_height*image_width);
 	//printf("Image allocated at start=%p end=%p\n", image[0], image[0]+sizeof(pixel)*image_height*image_width);
 
+	unsigned long long ini = rdtscl();
+	
 	//Proper ray tracing
-	for (row = 0; row < image_height; ++row) {
-		for (col = 0; col < image_width; ++col) {
-			image[pos(row, col, image_width)].r = 0;
-			image[pos(row, col, image_width)].g = 1;
-			image[pos(row, col, image_width)].b = 0;
-		}
+	if(atoi(argv[2]) == 0){
+		printf("C implementation\n");
+		tracer_c(image, image_width, image_height);
+	}else{
+		printf("SIMD implementation\n");
+		tracer_asm(image, image_width, image_height);
 	}
 
+	unsigned long long end = rdtscl();
+
+	printf("Took %llu cycles\n", end-ini);
 	//Outputting image
 	ofile = fopen(ofilename, "w");
 	
@@ -53,6 +64,7 @@ int main(int argc, char const *argv[])
 	fprintf(ofile,"%d %d\n", image_width, image_height);
 	fprintf(ofile,"255\n");
 
+	unsigned int row, col;
 	for(row = 0; row < image_height; row++){
 		for(col = 0; col < image_width; col++){
 			fprintf(ofile, "%d ", (int)(image[pos(row, col, image_width)].r*255));
