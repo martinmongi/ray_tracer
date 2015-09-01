@@ -1,9 +1,40 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <float.h>
 
 typedef struct {
 	float r, g, b, padd;
 } pixel;
 
-int tracer_c(pixel* image, int image_width, int image_height);
-extern int tracer_asm(pixel* image, int image_width, int image_height);
+typedef struct {
+	float x, y, z;
+} vector;
+
+typedef struct{
+	float intensity;
+	pixel color;
+	vector center;
+} light;
+
+typedef struct{
+	float r;
+	pixel color;
+	vector center;
+} sphere;
+
+typedef struct{
+	vector origin;
+	vector direction;
+} ray;
+
+#ifndef prints
+#define print_pixel(p) printf("r = %f\tg = %f\tb = %f\n", p.r, p.g, p.b)
+#define print_vector(v)	printf("x = %f\ty = %f\tz = %f\n", v.x, v.y, v.z)
+#endif
+
+
+int tracer_c(pixel* image, int image_width, int image_height, float focal_distance,
+	light* lights, int light_count, sphere* spheres, int sphere_count);
+extern int tracer_asm(pixel* image, int image_width, int image_height, float focal_distance,
+	light* lights, int light_count, sphere* spheres, int sphere_count);
