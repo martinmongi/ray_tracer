@@ -80,6 +80,7 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 	tracer.origin.x = 0;
 	tracer.origin.y = 0;
 	tracer.origin.z = 0;
+	tracer.direction.z = focal_distance;
 
 	unsigned int row, col;
 	int sphere_i;
@@ -91,13 +92,14 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 
 			tracer.direction.x = step*((float)col + 0.5) - window_width/2;
 			tracer.direction.y = -step*((float)row + 0.5) + window_height/2;
-			tracer.direction.z = focal_distance;
 
+			printf("row = %d\tcol = %d\t", row, col);
+			print_vector(tracer.direction);
 			vector intersection;
 
 			for(sphere_i = 0; sphere_i < sphere_count; sphere_i++){
 
-				if(ray_sphere_intersection(tracer, spheres[0], &intersection)){		
+				if(ray_sphere_intersection(tracer, spheres[sphere_i], &intersection)){		
 
 					distance = vector_2norm(vector_sub(tracer.origin, intersection));
 					//printf("row = %d\tcol = %d\tdistance = %f\n", row, col, distance);
@@ -107,15 +109,15 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 						nearest_object_distance = distance;
 
 						vector intersection_to_light = vector_sub(lights[0].center, intersection);
-						vector normal = vector_sub(intersection, spheres[0].center);
+						vector normal = vector_sub(intersection, spheres[sphere_i].center);
 						
 						float coef = vector_dot_product(intersection_to_light, normal)
 							/vector_2norm(intersection_to_light)/vector_2norm(normal);
 
 						if(coef > 0){
-							image[pos(row, col, image_width)].r = spheres[0].color.r * coef * lights[0].intensity * lights[0].color.r;
-							image[pos(row, col, image_width)].g = spheres[0].color.g * coef * lights[0].intensity * lights[0].color.g;
-							image[pos(row, col, image_width)].b = spheres[0].color.b * coef * lights[0].intensity * lights[0].color.b;
+							image[pos(row, col, image_width)].r = spheres[sphere_i].color.r * coef * lights[0].intensity * lights[0].color.r;
+							image[pos(row, col, image_width)].g = spheres[sphere_i].color.g * coef * lights[0].intensity * lights[0].color.g;
+							image[pos(row, col, image_width)].b = spheres[sphere_i].color.b * coef * lights[0].intensity * lights[0].color.b;
 						}
 					}
 				}
