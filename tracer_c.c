@@ -42,24 +42,26 @@ vector vector_normalize(const vector a){
 
 int ray_sphere_intersection(ray r, sphere s, vector* intersection){
 	
-	vector o_c = vector_sub(r.origin,s.center);
-	vector unit_direction = vector_normalize(r.direction);
-	float c = vector_dot_product(o_c,o_c) - s.r*s.r;
-	float b = 2 * vector_dot_product(unit_direction, o_c);
-	// float a = vector_dot_product(unit_direction, unit_direction);
+	vector l = vector_sub(r.origin,s.center);
+	float c = vector_dot_product(l,l) - s.r*s.r;
+	float b = 2 * vector_dot_product(r.direction, l);
+	float a = vector_dot_product(r.direction, r.direction);
 	
-	float root_base = b*b - 4*c;
+	float root_base = b*b - 4*a*c;
 
 	if (root_base < 0) return 0;
 	
-	float root = - b + pow(root_base, 0.5);
+	float root1 = (- b - pow(root_base, 0.5))/(2*a);
+	float root2 = (- b + pow(root_base, 0.5))/(2*a);
+	//root2 >= root1
 
-	if(root < 0) return 0;
+	if(root2 < 0 || root1 < 0)
+		return 0;
 	//printf("%f %f %f %f %f %f %f\n", unit_direction.x, unit_direction.y, unit_direction.z, a,b,c, root);
 	
-	intersection->x = r.origin.x + root*unit_direction.x;
-	intersection->y = r.origin.y + root*unit_direction.y;
-	intersection->z = r.origin.z + root*unit_direction.z;
+	float root = min(root1, root2);
+	*intersection = vector_sum(r.origin, vector_scale(root, r.direction));
+
 	//print_vector(*intersection);
 	return 1;
 	
@@ -95,32 +97,27 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 
 			for(sphere_i = 0; sphere_i < sphere_count; sphere_i++){
 
-				//printf("%d %d\n", row, col);
-				if(ray_sphere_intersection(tracer, spheres[sphere_i], &intersection)){
+				if(ray_sphere_intersection(tracer, spheres[0], &intersection)){		
 
-					image[pos(row, col, image_width)].r = 1;
-					image[pos(row, col, image_width)].g = 0;
-					image[pos(row, col, image_width)].b = 1;
-					
-
-					// distance = vector_2norm(vector_sub(tracer.origin, intersection));
-					// if(distance < nearest_object_distance){
+					distance = vector_2norm(vector_sub(tracer.origin, intersection));
+					//printf("row = %d\tcol = %d\tdistance = %f\n", row, col, distance);
+					if(distance < nearest_object_distance){
 
 						
-					// 	nearest_object_distance = distance;
+						nearest_object_distance = distance;
 
-					// 	vector intersection_to_light = vector_normalize(vector_sub(lights[0].center, intersection));
-					// 	vector normal = vector_normalize(vector_sub(intersection, spheres[sphere_i].center));
+						vector intersection_to_light = vector_sub(lights[0].center, intersection);
+						vector normal = vector_sub(intersection, spheres[0].center);
 						
-					// 	float coef = vector_dot_product(intersection_to_light, normal);
+						float coef = vector_dot_product(intersection_to_light, normal)
+							/vector_2norm(intersection_to_light)/vector_2norm(normal);
 
-						
-					// 	if(coef > 0){
-					// 		image[pos(row, col, image_width)].r = spheres[sphere_i].color.r * coef * lights[0].intensity * lights[0].color.r;
-					// 		image[pos(row, col, image_width)].g = spheres[sphere_i].color.g * coef * lights[0].intensity * lights[0].color.g;
-					// 		image[pos(row, col, image_width)].b = spheres[sphere_i].color.b * coef * lights[0].intensity * lights[0].color.b;
-					// 	}
-					// }
+						if(coef > 0){
+							image[pos(row, col, image_width)].r = spheres[0].color.r * coef * lights[0].intensity * lights[0].color.r;
+							image[pos(row, col, image_width)].g = spheres[0].color.g * coef * lights[0].intensity * lights[0].color.g;
+							image[pos(row, col, image_width)].b = spheres[0].color.b * coef * lights[0].intensity * lights[0].color.b;
+						}
+					}
 				}
 			}
 		}
