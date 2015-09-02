@@ -20,14 +20,6 @@ tracer_asm:
 		xor r9, r9 ; col
 	loop_2:
 
-		
-		; mov rbx, r8
-		; mul rbx, rsi
-		; add rbx, r9
-		; shl rbx, 4
-		; add rax, rbx
-
-		
 		movdqu [rax], xmm0
 
 		add rax, 16
