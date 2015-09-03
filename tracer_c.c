@@ -70,7 +70,7 @@ int ray_sphere_intersection(ray r, sphere s, vector* intersection){
 int tracer_c(pixel* image, int image_width, int image_height, float focal_distance, light* lights, int light_count, sphere* spheres, int sphere_count){
 
 	float relation = (float)image_width/(float)image_height;
-	float fd_sq = focal_distance*focal_distance;
+	float fd_sq = 1225;
 	float r_sq = relation*relation;
 	float window_height = pow(fd_sq/(r_sq + 1), 0.5);
 	float window_width = relation*window_height;
