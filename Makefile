@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g -Wall -O3 
 NASM = nasm
-NASMFLAGS = -f elf64 -g -F DWARF
+NASMFLAGS = -f elf64 -g -F DWARF -Wall
 LD = gcc
 LDFLAGS = -lm
 

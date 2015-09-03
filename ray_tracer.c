@@ -139,8 +139,19 @@ int main(int argc, char const *argv[]){
 			lights, light_count, spheres, sphere_count, triangles, triangle_count);
 	}else{
 		if(DEBUG) printf("SIMD implementation\n");
-		tracer_asm(image, image_width, image_height, focal_distance,
-			lights, light_count, spheres, sphere_count);
+		scene s;
+		s.image = image;
+		s.image_width = image_width;
+		s.image_height = image_height;
+		s.focal_distance = focal_distance;
+		s.lights = lights;
+		s.light_count = light_count;
+		s.spheres = spheres;
+		s.sphere_count = sphere_count;
+		s.triangles = triangles;
+		s.triangle_count = triangle_count;
+
+		tracer_asm(&s);
 	}
 
 	unsigned long long end = rdtscl();

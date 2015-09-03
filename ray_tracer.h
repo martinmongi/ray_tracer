@@ -37,6 +37,19 @@ typedef struct{
 	vector direction;
 } ray;
 
+typedef struct /*__attribute__((__packed__))*/{
+	pixel* image;
+	light* lights;
+	sphere* spheres;
+	triangle* triangles;
+	int image_width;
+	int image_height;
+	int light_count;
+	int sphere_count;
+	int triangle_count;
+	float focal_distance;
+} scene;
+
 #ifndef macros
 #define print_pixel(p) printf("r = %f\tg = %f\tb = %f\n", p.r, p.g, p.b)
 #define print_vector(v)	printf("x = %f\ty = %f\tz = %f\n", v.x, v.y, v.z)
@@ -48,7 +61,6 @@ typedef struct{
 int tracer_c(pixel* image, int image_width, int image_height,
 	float focal_distance, 	light* lights, int light_count, sphere* spheres,
 	int sphere_count, triangle* triangles, int triangle_count);
-extern int tracer_asm(pixel* image, int image_width, int image_height, float focal_distance,
-	light* lights, int light_count, sphere* spheres, int sphere_count);
+extern int tracer_asm(scene* s);
 
 #endif /*HEADER_SEEN*/
