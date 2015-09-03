@@ -28,6 +28,11 @@ typedef struct{
 } sphere;
 
 typedef struct{
+	pixel color;
+	vector v1,v2,v3;
+} triangle;
+
+typedef struct{
 	vector origin;
 	vector direction;
 } ray;
@@ -37,11 +42,12 @@ typedef struct{
 #define print_vector(v)	printf("x = %f\ty = %f\tz = %f\n", v.x, v.y, v.z)
 #define min(a,b) (a < b)? a : b
 #define max(a,b) (a > b)? a : b
+#define abs(a) (a >= 0)? a : -a
 #endif
 
-
-int tracer_c(pixel* image, int image_width, int image_height, float focal_distance,
-	light* lights, int light_count, sphere* spheres, int sphere_count);
+int tracer_c(pixel* image, int image_width, int image_height,
+	float focal_distance, 	light* lights, int light_count, sphere* spheres,
+	int sphere_count, triangle* triangles, int triangle_count);
 extern int tracer_asm(pixel* image, int image_width, int image_height, float focal_distance,
 	light* lights, int light_count, sphere* spheres, int sphere_count);
 

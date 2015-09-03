@@ -8,6 +8,14 @@ float vector_dot_product(const vector a, const vector b){
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
+vector vector_cross_product(const vector a, const vector b){
+	vector r;
+	r.x = a.y * b.z - a.z * b.y;
+	r.y = a.z * b.x - a.x * b.z;
+	r.z = a.x * b.y - a.y * b.x;
+	return r;
+}
+
 vector vector_sum(const vector a, const vector b){
 	vector r;
 	r.x = a.x + b.x;
@@ -67,7 +75,39 @@ int ray_sphere_intersection(ray r, sphere s, vector* intersection){
 	
 }
 
-int tracer_c(pixel* image, int image_width, int image_height, float focal_distance, light* lights, int light_count, sphere* spheres, int sphere_count){
+int same_side_semiplane(vector p1, vector p2, vector a, vector b){
+	//Returns true if p1 and p2 are on the same side of the plane divided by the line that goes through a and b
+	vector cp1 = vector_cross_product(vector_sub(b,a), vector_sub(p1,a));
+	vector cp2 = vector_cross_product(vector_sub(b,a), vector_sub(p2,a));
+	return (vector_dot_product(cp1, cp2) >= 0);
+}
+
+int ray_triangle_intersection(ray r, triangle t, vector* intersection){
+
+	vector normal = vector_cross_product(vector_sub(t.v1, t.v2), vector_sub(t.v3, t.v2));
+
+	//All points p in the plane (p-v1)*normal = 0
+
+	float dp = vector_dot_product(r.direction, normal);
+	if(dp == 0) return 0;
+
+	float d = vector_dot_product(vector_sub(t.v1, r.origin), normal)/dp;
+
+	if(d < 0) return 0;
+
+	*intersection = vector_sum(vector_scale(d,r.direction),r.origin);
+
+	/*I have intersected the plane the triangle is contained with the ray
+	Now I have to see if that point is inside the triangle*/
+
+	return (same_side_semiplane(*intersection, t.v1, t.v2, t.v3) &&
+		same_side_semiplane(*intersection, t.v2, t.v3, t.v1) &&
+		same_side_semiplane(*intersection, t.v3, t.v1, t.v2));
+}
+
+int tracer_c(pixel* image, int image_width, int image_height,
+	float focal_distance, 	light* lights, int light_count, sphere* spheres,
+	int sphere_count, triangle* triangles, int triangle_count){
 
 	float relation = (float)image_width/(float)image_height;
 	float fd_sq = 1225;
@@ -83,7 +123,7 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 	tracer.direction.z = focal_distance;
 
 	unsigned int row, col;
-	int sphere_i, light_i;
+	int sphere_i, light_i, triangle_i;
 	vector intersection;
 
 	for(row = 0; row < image_height; row++){
@@ -105,13 +145,13 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 					//printf("row = %d\tcol = %d\tdistance = %f\n", row, col, distance);
 					if(distance < nearest_object_distance){
 		
-					nearest_object_distance = distance;
+						nearest_object_distance = distance;
 
-					image[pos(row, col, image_width)].r = 0;
-					image[pos(row, col, image_width)].g = 0;
-					image[pos(row, col, image_width)].b = 0;
-					
-					for(light_i = 0; light_i < light_count; light_i++){
+						image[pos(row, col, image_width)].r = 0;
+						image[pos(row, col, image_width)].g = 0;
+						image[pos(row, col, image_width)].b = 0;
+						
+						for(light_i = 0; light_i < light_count; light_i++){
 
 							vector intersection_to_light = vector_sub(lights[light_i].center, intersection);
 							vector normal = vector_sub(intersection, spheres[sphere_i].center);
@@ -120,9 +160,41 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 								/vector_2norm(intersection_to_light)/vector_2norm(normal);
 
 							if(coef > 0){
-								image[pos(row, col, image_width)].r += spheres[sphere_i].color.r * coef * lights[0].intensity * lights[0].color.r;
-								image[pos(row, col, image_width)].g += spheres[sphere_i].color.g * coef * lights[0].intensity * lights[0].color.g;
-								image[pos(row, col, image_width)].b += spheres[sphere_i].color.b * coef * lights[0].intensity * lights[0].color.b;
+								image[pos(row, col, image_width)].r += spheres[sphere_i].color.r * coef * lights[light_i].intensity * lights[light_i].color.r;
+								image[pos(row, col, image_width)].g += spheres[sphere_i].color.g * coef * lights[light_i].intensity * lights[light_i].color.g;
+								image[pos(row, col, image_width)].b += spheres[sphere_i].color.b * coef * lights[light_i].intensity * lights[light_i].color.b;
+							}
+						}
+					}
+				}
+			}
+
+			for(triangle_i = 0; triangle_i < triangle_count; triangle_i++){
+
+				if(ray_triangle_intersection(tracer, triangles[triangle_i], &intersection)){
+
+					distance = vector_2norm(vector_sub(tracer.origin, intersection));
+					// printf("row = %d\tcol = %d\tdistance = %f\n", row, col, distance);
+					if(distance < nearest_object_distance){
+			
+						nearest_object_distance = distance;
+
+						image[pos(row, col, image_width)].r = 0;
+						image[pos(row, col, image_width)].g = 0;
+						image[pos(row, col, image_width)].b = 0;
+						
+						for(light_i = 0; light_i < light_count; light_i++){
+
+							vector intersection_to_light = vector_sub(lights[light_i].center, intersection);
+							vector normal = vector_cross_product(vector_sub(triangles[triangle_i].v1, triangles[triangle_i].v2), vector_sub(triangles[triangle_i].v3, triangles[triangle_i].v2));
+							
+							float coef = abs(vector_dot_product(intersection_to_light, normal)
+								/vector_2norm(intersection_to_light)/vector_2norm(normal));
+
+							if(coef > 0){
+								image[pos(row, col, image_width)].r += triangles[triangle_i].color.r * coef * lights[light_i].intensity * lights[light_i].color.r;
+								image[pos(row, col, image_width)].g += triangles[triangle_i].color.g * coef * lights[light_i].intensity * lights[light_i].color.g;
+								image[pos(row, col, image_width)].b += triangles[triangle_i].color.b * coef * lights[light_i].intensity * lights[light_i].color.b;
 							}
 						}
 					}
@@ -131,6 +203,5 @@ int tracer_c(pixel* image, int image_width, int image_height, float focal_distan
 		}
 	}
 	
-
 	return 0;
 }
