@@ -56,12 +56,13 @@ int ray_sphere_intersection(ray r, sphere s, vector* intersection){
 	float a = vector_dot_product(r.direction, r.direction);
 	
 	float root_base = b*b - 4*a*c;
-	printf("a = %f\tb = %f\tc = %f\trb = %f\n", a,b,c,root_base);
+	// printf("a = %f\tb = %f\tc = %f\trb = %f\n", a,b,c,root_base);
 
 	if (root_base < 0) return 0;
 	
 	float root1 = (- b - pow(root_base, 0.5))/(2*a);
 	float root2 = (- b + pow(root_base, 0.5))/(2*a);
+	printf("roo1 = %f\troot2 = %f\n", root1, root2);
 	//root2 >= root1
 
 	if(root2 < 0 || root1 < 0)
@@ -138,13 +139,13 @@ int tracer_c(pixel* image, int image_width, int image_height,
 			tracer.direction.x = step*((float)col+.5) - window_width/2;
 			tracer.direction.y = -step*((float)row+.5) + window_height/2;
 
-			printf("row = %d\tcol = %d\t", row, col);
-			print_vector(tracer.direction);
+			// printf("row = %d\tcol = %d\t", row, col);
+			// print_vector(tracer.direction);
 			
-
 			for(sphere_i = 0; sphere_i < sphere_count; sphere_i++){
 
-				if(ray_sphere_intersection(tracer, spheres[sphere_i], &intersection)){		
+				if(ray_sphere_intersection(tracer, spheres[sphere_i], &intersection)){
+					print_vector(intersection);	
 					distance = vector_2norm(vector_sub(tracer.origin, intersection));
 					//printf("row = %d\tcol = %d\tdistance = %f\n", row, col, distance);
 					if(distance < nearest_object_distance){

@@ -135,8 +135,12 @@ tracer_asm:
 		vsqrtss xmm12, xmm12, xmm12			; xmm12 = root1 = pow(root_base,0.5)
 		vmovd xmm9, [zero]					; xmm9 = 0
 		vsubss xmm9, xmm9, xmm12			; xmm9 = -pow(root_base,0.5)
-		vsubss xmm9, xmm9, xmm10			; xmm9 = root1
-		vsubss xmm12, xmm12, xmm10			; xmm12 = root2
+		vsubss xmm9, xmm9, xmm10			; xmm9 = -pow(root_base,0.5) - b
+		vsubss xmm12, xmm12, xmm10			; xmm12 = pow(root_base,0.5) - b
+		vdivss xmm12, xmm12, xmm11			; xmm12 = (pow(root_base,0.5) - b)/a
+		vdivss xmm12, xmm12, [two]			; xmm12 = root1 = (pow(root_base,0.5) - b)/a/2
+		vdivss xmm9, xmm9, xmm11			; xmm9 = (-pow(root_base,0.5) - b)/a
+		vdivss xmm9, xmm9, [two]			; xmm9 = root2 = (-pow(root_base,0.5) - b)/a/2
 		vcomiss xmm12, [zero]
 		jb .exit_sphere_ray_intersection
 		vcomiss xmm9, [zero]
@@ -148,8 +152,8 @@ tracer_asm:
 		; Here the function ray-sphere intersection ends.
 		; We know the ray and sphere intersect and intersection is at xmm8
 
-		movdqu xmm0, [white]  
-		movdqu [rax], xmm0  
+		movdqu xmm15, [white]  
+		movdqu [rax], xmm15  
 
 
 	.exit_sphere_ray_intersection:
