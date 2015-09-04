@@ -132,18 +132,21 @@ tracer_asm:
 		jb .exit_sphere_ray_intersection
 
 
-		; vsqrtss xmm12, xmm12, xmm12			; xmm12 = root1 = pow(root_base,0.5)
-		; vmovd xmm9, [zero]					; xmm9 = 0
-		; vsubss xmm9, xmm9, xmm12			; xmm9 = -pow(root_base,0.5)
-		; vsubss xmm9, xmm9, xmm10			; xmm9 = root1
-		; vsubss xmm12, xmm12, xmm10			; xmm12 = root2
-		; vcomiss xmm12, [zero]
-		; jb .exit_sphere_ray_intersection
-		; vcomiss xmm9, [zero]
-		; jb .exit_sphere_ray_intersection
-		; vminss xmm8, xmm9, xmm12			; xmm8 = min(root1,root2)
-		; vector_scale xmm8, xmm8, xmm1		; xmm8 = vector_scale(root, r.direction)
-		; vector_sum xmm8, xmm8, xmm0			; xmm8 = intersection = vector_sum(r.origin, vector_scale(root, r.direction))
+		vsqrtss xmm12, xmm12, xmm12			; xmm12 = root1 = pow(root_base,0.5)
+		vmovd xmm9, [zero]					; xmm9 = 0
+		vsubss xmm9, xmm9, xmm12			; xmm9 = -pow(root_base,0.5)
+		vsubss xmm9, xmm9, xmm10			; xmm9 = root1
+		vsubss xmm12, xmm12, xmm10			; xmm12 = root2
+		vcomiss xmm12, [zero]
+		jb .exit_sphere_ray_intersection
+		vcomiss xmm9, [zero]
+		jb .exit_sphere_ray_intersection
+		vminss xmm8, xmm9, xmm12			; xmm8 = min(root1,root2)
+		vector_scale xmm8, xmm8, xmm1		; xmm8 = vector_scale(root, r.direction)
+		vector_sum xmm8, xmm8, xmm0			; xmm8 = intersection = vector_sum(r.origin, vector_scale(root, r.direction))
+
+		; Here the function ray-sphere intersection ends.
+		; We know the ray and sphere intersect and intersection is at xmm8
 
 		movdqu xmm0, [white]  
 		movdqu [rax], xmm0  
