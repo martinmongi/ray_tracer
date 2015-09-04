@@ -15,6 +15,8 @@ unsigned long long rdtscl(void)
 
 int main(int argc, char const *argv[]){
 
+	// printf("%d\n", sizeof(sphere));
+
 	if(argc < 3){
 		if(DEBUG) printf("Usage: %s input_file.in I\n", argv[0]);
 		if(DEBUG) printf("I =\t0 for C implementation\n");
@@ -53,6 +55,7 @@ int main(int argc, char const *argv[]){
 			image[pos(row, col, image_width)].r = 0;
 			image[pos(row, col, image_width)].g = 0;
 			image[pos(row, col, image_width)].b = 0;
+			image[pos(row, col, image_width)].padd = 0;
 		}
 	}
 
@@ -83,6 +86,8 @@ int main(int argc, char const *argv[]){
 		if(DEBUG) print_pixel(lights[i].color);
 		a = fscanf(ifile, "%f %f %f", &lights[i].center.x, &lights[i].center.y, &lights[i].center.z);
 		if(DEBUG) print_vector(lights[i].center);
+		lights[i].color.padd = 0;
+		lights[i].center.padd = 0;
 	}
 
 	//Spheres reading
@@ -103,6 +108,8 @@ int main(int argc, char const *argv[]){
 		if(DEBUG) print_pixel(spheres[i].color);
 		a = fscanf(ifile, "%f %f %f", &spheres[i].center.x, &spheres[i].center.y, &spheres[i].center.z);
 		if(DEBUG) print_vector(spheres[i].center);
+		spheres[i].color.padd = 0;
+		spheres[i].center.padd = 0;
 	}
 
 	//Triangless reading
@@ -126,6 +133,10 @@ int main(int argc, char const *argv[]){
 		if(DEBUG) print_vector(triangles[i].v2);
 		a = fscanf(ifile, "%f %f %f", &triangles[i].v3.x, &triangles[i].v3.y, &triangles[i].v3.z);
 		if(DEBUG) print_vector(triangles[i].v3);
+		triangles[i].color.padd = 0;
+		triangles[i].v1.padd = 0;
+		triangles[i].v2.padd = 0;
+		triangles[i].v3.padd = 0;
 	}
 
 	if(a) a = 0; //ignore set but unused warning

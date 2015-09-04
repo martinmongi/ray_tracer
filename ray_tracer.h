@@ -12,19 +12,19 @@ typedef struct {
 } pixel;
 
 typedef struct {
-	float x, y, z;
+	float x, y, z, padd;
 } vector;
 
 typedef struct{
-	float intensity;
 	pixel color;
 	vector center;
+	float intensity;
 } light;
 
 typedef struct{
-	float r;
 	pixel color;
 	vector center;
+	float r;
 } sphere;
 
 typedef struct{
