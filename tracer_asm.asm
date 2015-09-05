@@ -1,6 +1,6 @@
 ;Macros will only use xmm registers above 
 
-%macro vector_sum 3
+%macro vector_add 3
 	vaddps %1, %2, %3
 %endmacro
 
@@ -22,6 +22,29 @@
 %macro vector_2norm 2
 	vector_dot_product %1, %2, %2
 	vsqrtps %1, %1
+%endmacro
+
+%macro same_side 5 ;dest p1 p2 a b
+	vector_sub xmm14, %5, %4	; b-a
+	vector_sub xmm13, %2, %4	; p1-a
+	vector_cross_product xmm13, xmm13, xmm14 ; cross_product(b-a,p1-a)
+	vector_sub %1, %3, %4		; p2-a
+	vector_cross_product %1, %1, xmm14 ; cross_product(b-a,p2-a)
+	vector_dot_product %1, %1, xmm13
+%endmacro
+
+%macro vector_cross_product 3 ; x = 11 y = 10 z = 01 padd = 00
+	vpshufd xmm4, %2, 0b10011100 ; shuff a
+	vpshufd xmm7, %3, 0b01111000 ; shuff b
+	vmulps %1, xmm4, xmm7
+	vpshufd xmm4, %2, 0b01111000 ; shuff a
+	vpshufd xmm7, %3, 0b10011100 ; shuff b
+	vmulps xmm4, xmm4, xmm7
+	vsubps %1, %1, xmm4
+%endmacro
+
+%macro invert 1
+	vpshufd %1, %1, 0b00011011
 %endmacro
 
 global tracer_asm
@@ -112,6 +135,8 @@ tracer_asm:
 		
 		vmovss xmm2, [flt_max]	; xmm2 = nearest = flt_max
 
+
+;=================SPHERE START=============================================================
 		mov ebx, [rdi + 44]			; rbx = sphere_count
 		mov r11, [rdi + 16]			; r11 = spheres
 
@@ -156,7 +181,7 @@ tracer_asm:
 		jb .exit_sphere_ray_intersection
 		vminss xmm8, xmm9, xmm12			; xmm8 = min(root1,root2)
 		vector_scale xmm8, xmm8, xmm1		; xmm8 = vector_scale(root, r.direction)
-		vector_sum xmm8, xmm8, xmm0			; xmm8 = intersection = vector_sum(r.origin, vector_scale(root, r.direction))
+		vector_add xmm8, xmm8, xmm0			; xmm8 = intersection = vector_add(r.origin, vector_scale(root, r.direction))
 
 		; Here the function ray-sphere intersection ends.
 		; We know the ray and sphere intersect and intersection is at xmm8
@@ -216,10 +241,60 @@ tracer_asm:
 		inc r10d
 		add r12, 36
 		jmp .sphere_loop
-		
-	;===========
 
 	.exit_sphere_loop:
+		
+;=================SPHERE END=============================================================
+	
+
+;=================TRIANGLE START=============================================================
+
+		mov ebx, [rdi + 48]			; rbx = triangle_count
+		mov r11, [rdi + 24]			; r11 = triangles
+
+		xor r10d, r10d			; r10 = triangle_i
+		mov r12, r11			; r12 = &triangles[triangle_i]
+
+	.triangle_loop:
+
+		cmp r10d,ebx
+		je .exit_triangle_loop
+
+	; Ray triangle intersection
+
+		vmovdqu xmm8, [r12+16]			; xmm8 = v1
+		vector_sub xmm8, xmm8, [r12+32]		; xmm8 = v1 - v2
+		vmovdqu xmm9, [r12+48]			; xmm9 = v3
+		vector_sub xmm9, xmm9, [r12+32]		; xmm8 = v3 - v2
+		invert xmm8
+		invert xmm9
+		vector_cross_product xmm10, xmm8, xmm9	; xmm10 = normal = v1-v2xv3-v2
+
+		vector_dot_product xmm8, xmm10, xmm1	; xmm8 = dp = normal . r.direction
+		vcomiss xmm8, [zero]
+		je .exit_triangle_ray_intersection		;jumps if triangle is parallel to ray
+
+		vmovdqu xmm9, [r12+16]			; xmm9 = v1
+		invert xmm9
+		vector_sub xmm9, xmm9, xmm0		; xmm9 = v1 - r.origin
+		vector_dot_product xmm9, xmm9, xmm10	; xmm9 = dot(normal, v1 - r.origin)
+		vdivss xmm9, xmm9, xmm8					; xmm9 = d =dot(normal, v1 - r.origin)/dp
+
+		vcomiss xmm9, [zero]
+		jb .exit_triangle_ray_intersection
+
+		vmovdqu xmm8, xmm1				; xmm8 = r.direction
+		vector_scale xmm10, xmm9, xmm8	; xmm8 = scale(d,r.direction)
+		vector_add xmm8, xmm10, xmm0		; xmm8 = intersection = scale(d,r.direction) + r.origin
+
+	.exit_triangle_ray_intersection:
+		inc r10d
+		add r12, 64
+		jmp .triangle_loop
+
+
+	.exit_triangle_loop:
+
 		vpshufd xmm15, xmm15, 0b00011011
 		vmovdqu [rax], xmm15  
 

@@ -82,9 +82,9 @@ int same_side_semiplane(vector p1, vector p2, vector a, vector b){
 	vector cp1 = vector_cross_product(vector_sub(b,a), vector_sub(p1,a));
 	vector cp2 = vector_cross_product(vector_sub(b,a), vector_sub(p2,a));
 	float res = vector_dot_product(cp1, cp2);
-	print_vector(cp1);
-	print_vector(cp2);
-	printf("%f\n", res);
+	// print_vector(cp1);
+	// print_vector(cp2);
+	// printf("%f\n", res);
 	return (res >= 0);
 }
 
@@ -102,7 +102,9 @@ int ray_triangle_intersection(ray r, triangle t, vector* intersection){
 
 	if(d < 0) return 0;
 
+	printf("d = %f\n", d);
 	*intersection = vector_sum(vector_scale(d,r.direction),r.origin);
+	print_vector((*intersection));
 
 	/*I have intersected the plane the triangle is contained with the ray
 	Now I have to see if that point is inside the triangle*/
