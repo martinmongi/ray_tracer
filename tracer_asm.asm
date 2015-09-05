@@ -21,7 +21,7 @@
 
 %macro vector_2norm 2
 	vector_dot_product %1, %2, %2
-	vsqrtss %1, %1, %1
+	vsqrtps %1, %1
 %endmacro
 
 global tracer_asm
@@ -47,12 +47,14 @@ tracer_asm:
 	 	mov rbp, rsp
 	 	push rbx
 	 	push r12
+	 	push r13
+	 	push r14
+	 	push r15
+
 
 		mov rax, [rdi]				; rax = image
 		mov esi, [rdi + 32]			; rsi = image_width
 		mov edx, [rdi + 36]			; rdx = image_height
-		mov ebx, [rdi + 44]			; rbx = sphere_count
-		mov r11, [rdi + 16]			; r11 = spheres
 		vcvtsi2ss xmm0, [rdi+32]	; X xmm0 = image_width
 		vcvtsi2ss xmm1, [rdi+36]	; X xmm1 = image_height
 		vdivss xmm2, xmm0, xmm1		; X xmm2 = relation
@@ -81,6 +83,9 @@ tracer_asm:
 		xor r9d, r9d ; col
 	.col_loop:
 
+		vmovss xmm2, xmm9
+		movdqu xmm15, [black]
+
 		vcvtsi2ss xmm1, r9d			;xmm1 = col
 		vaddss xmm1, xmm1, [half]	;xmm1 = col + .5
 		vmulss xmm1, xmm1, xmm6		;xmm1 = (col + .5) * step
@@ -107,14 +112,18 @@ tracer_asm:
 		
 		vmovss xmm2, [flt_max]	; xmm2 = nearest = flt_max
 
+		mov ebx, [rdi + 44]			; rbx = sphere_count
+		mov r11, [rdi + 16]			; r11 = spheres
+
 		xor r10d, r10d			; r10 = sphere_i
 		mov r12, r11			; r12 = &spheres[sphere_i]
+
 	.sphere_loop:
 		cmp r10d,ebx
 		je .exit_sphere_loop
 		;Ray_sphere_intersection
 
-		vmovups xmm8, [r12+16]
+		vmovups xmm8, [r12+16]				;xmm8 = s.center
 		vpshufd xmm8, xmm8, 0b00011011
 		vector_sub xmm8, xmm0, xmm8			; xmm8 = l = vector_sub(r.origin,s.center)
 		vector_dot_product xmm9, xmm8, xmm8	; xmm9 = vector_dot_product(l,l)
@@ -152,16 +161,68 @@ tracer_asm:
 		; Here the function ray-sphere intersection ends.
 		; We know the ray and sphere intersect and intersection is at xmm8
 
-		movdqu xmm15, [white]  
-		movdqu [rax], xmm15  
+		vector_sub xmm9, xmm0, xmm8			; xmm9 = tracer.origin - intersection
+		vector_dot_product xmm9, xmm9, xmm9	; xmm9 = distance squared
+		vcomiss xmm9, xmm2
+		ja .exit_sphere_ray_intersection	; si no es el elemento mas cercano salto
 
+		vmovss xmm2, xmm9
+		movdqu xmm15, [black]
+
+		mov r13d, [rdi + 40]		;r13d = light_count
+		mov r14, [rdi + 8]			; r14 = lights
+		xor r15d, r15d				; r15d = lights_i
+		mov rcx, r14				; rcx = lights[lights_i]
+
+	.light_loop1:
+
+		cmp r15d, r13d
+		je .exit_sphere_ray_intersection	
+
+		vmovdqu xmm9, [rcx+16]		; xmm9 = light.center
+		vpshufd xmm9, xmm9, 0b00011011
+		vsubps xmm9, xmm9, xmm8		; xmm9 = intersection_to_light = light.center - intersection
+		vmovups xmm10, [r12+16]		; xmm10 = s.center
+		vpshufd xmm10, xmm10, 0b00011011
+		vsubps xmm10, xmm8, xmm10	 ;xmm10 = normal = intersection - s.center
+
+		vector_dot_product xmm11, xmm9, xmm10	; xmm11 = dot(intersection_to_light, normal)
+		vector_2norm xmm12, xmm9
+		vdivps xmm11, xmm11, xmm12
+		vector_2norm xmm12, xmm10
+		vdivps xmm11, xmm11, xmm12	; xmm11 = coef|coef|coef|coef
+
+		vcomiss xmm11, [zero]
+		jb .shadow
+
+		vmovdqu xmm9, [r12]			;xmm9 = s.color	
+		vpshufd xmm9, xmm9, 0b00011011
+		vmulps xmm9, xmm9, xmm11	;xmm9 = s.color*coef
+		vmovss xmm10, [rcx+32]			;xmm10 = intensity
+		vpshufd xmm10, xmm10, 0h00	;xmm10 = intensity|intensity|intensity|intensity|
+		vmulps xmm9, xmm9, xmm10	;xmm9 = s.color*coef*l.intensity
+		vmovdqu xmm10, [rcx]			; xmm10 = l.color
+		vpshufd xmm10, xmm10, 0b00011011
+		vmulps xmm9, xmm9, xmm10	;xmm9 = s.color*coef*l.intensity*l.color
+
+		vaddps xmm15, xmm15, xmm9
+		
+	.shadow:
+		inc r15d
+		add rcx, 36
+		jmp .light_loop1
 
 	.exit_sphere_ray_intersection:
 		inc r10d
 		add r12, 36
 		jmp .sphere_loop
 		
+	;===========
+
 	.exit_sphere_loop:
+		vpshufd xmm15, xmm15, 0b00011011
+		vmovdqu [rax], xmm15  
+
 		
 		add rax, 16
 		inc r9d
@@ -172,6 +233,9 @@ tracer_asm:
 		cmp r8d, edx
 		jne .row_loop
 
+		pop r15
+		pop r14
+		pop r13
 		pop r12
 		pop rbx
 		pop rbp

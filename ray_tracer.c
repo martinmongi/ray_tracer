@@ -4,7 +4,7 @@
 #define pos(row, col, width) (row * width + col)
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 
 unsigned long long rdtscl(void)
 {
@@ -14,8 +14,6 @@ unsigned long long rdtscl(void)
 }	
 
 int main(int argc, char const *argv[]){
-
-	// printf("%d\n", sizeof(sphere));
 
 	if(argc < 3){
 		if(DEBUG) printf("Usage: %s input_file.in I\n", argv[0]);

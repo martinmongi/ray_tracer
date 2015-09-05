@@ -62,7 +62,7 @@ int ray_sphere_intersection(ray r, sphere s, vector* intersection){
 	
 	float root1 = (- b - pow(root_base, 0.5))/(2*a);
 	float root2 = (- b + pow(root_base, 0.5))/(2*a);
-	printf("roo1 = %f\troot2 = %f\n", root1, root2);
+	//printf("roo1 = %f\troot2 = %f\n", root1, root2);
 	//root2 >= root1
 
 	if(root2 < 0 || root1 < 0)
@@ -81,12 +81,17 @@ int same_side_semiplane(vector p1, vector p2, vector a, vector b){
 	//Returns true if p1 and p2 are on the same side of the plane divided by the line that goes through a and b
 	vector cp1 = vector_cross_product(vector_sub(b,a), vector_sub(p1,a));
 	vector cp2 = vector_cross_product(vector_sub(b,a), vector_sub(p2,a));
-	return (vector_dot_product(cp1, cp2) >= 0);
+	float res = vector_dot_product(cp1, cp2);
+	print_vector(cp1);
+	print_vector(cp2);
+	printf("%f\n", res);
+	return (res >= 0);
 }
 
 int ray_triangle_intersection(ray r, triangle t, vector* intersection){
 
 	vector normal = vector_cross_product(vector_sub(t.v1, t.v2), vector_sub(t.v3, t.v2));
+	//print_vector(normal);
 
 	//All points p in the plane (p-v1)*normal = 0
 
@@ -117,10 +122,6 @@ int tracer_c(pixel* image, int image_width, int image_height,
 	float window_width = relation*window_height;
 	float step = window_width/(float)image_width;
 
-	printf("window_height = %f\n", window_height);
-	printf("window_width = %f\n", window_width);
-	printf("step = %f\n", step);
-
 	ray tracer; //ba dum tss
 	tracer.origin.x = 0;
 	tracer.origin.y = 0;
@@ -145,7 +146,7 @@ int tracer_c(pixel* image, int image_width, int image_height,
 			for(sphere_i = 0; sphere_i < sphere_count; sphere_i++){
 
 				if(ray_sphere_intersection(tracer, spheres[sphere_i], &intersection)){
-					print_vector(intersection);	
+					//print_vector(intersection);	
 					distance = vector_2norm(vector_sub(tracer.origin, intersection));
 					//printf("row = %d\tcol = %d\tdistance = %f\n", row, col, distance);
 					if(distance < nearest_object_distance){
@@ -159,11 +160,13 @@ int tracer_c(pixel* image, int image_width, int image_height,
 						for(light_i = 0; light_i < light_count; light_i++){
 
 							vector intersection_to_light = vector_sub(lights[light_i].center, intersection);
+							// print_vector(intersection_to_light);
 							vector normal = vector_sub(intersection, spheres[sphere_i].center);
-							
-							float coef = vector_dot_product(intersection_to_light, normal)
-								/vector_2norm(intersection_to_light)/vector_2norm(normal);
-
+							// print_vector(normal);
+							float coef = vector_dot_product(intersection_to_light, normal);
+							// printf("%f\n", coef);
+							coef = coef/vector_2norm(intersection_to_light)/vector_2norm(normal);
+							// printf("%f\n", coef);
 							if(coef > 0){
 								image[pos(row, col, image_width)].r += spheres[sphere_i].color.r * coef * lights[light_i].intensity * lights[light_i].color.r;
 								image[pos(row, col, image_width)].g += spheres[sphere_i].color.g * coef * lights[light_i].intensity * lights[light_i].color.g;
