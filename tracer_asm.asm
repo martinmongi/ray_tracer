@@ -149,7 +149,7 @@ tracer_asm:
 		;Ray_sphere_intersection
 
 		vmovups xmm8, [r12+16]				;xmm8 = s.center
-		vpshufd xmm8, xmm8, 0b00011011
+		invert xmm8
 		vector_sub xmm8, xmm0, xmm8			; xmm8 = l = vector_sub(r.origin,s.center)
 		vector_dot_product xmm9, xmm8, xmm8	; xmm9 = vector_dot_product(l,l)
 		vmovd xmm10, [r12+32]				; xmm10 = s.r
@@ -205,10 +205,10 @@ tracer_asm:
 		je .exit_sphere_ray_intersection	
 
 		vmovdqu xmm9, [rcx+16]		; xmm9 = light.center
-		vpshufd xmm9, xmm9, 0b00011011
+		invert xmm9
 		vsubps xmm9, xmm9, xmm8		; xmm9 = intersection_to_light = light.center - intersection
 		vmovups xmm10, [r12+16]		; xmm10 = s.center
-		vpshufd xmm10, xmm10, 0b00011011
+		invert xmm10
 		vsubps xmm10, xmm8, xmm10	 ;xmm10 = normal = intersection - s.center
 
 		vector_dot_product xmm11, xmm9, xmm10	; xmm11 = dot(intersection_to_light, normal)
@@ -221,13 +221,13 @@ tracer_asm:
 		jb .shadow
 
 		vmovdqu xmm9, [r12]			;xmm9 = s.color	
-		vpshufd xmm9, xmm9, 0b00011011
+		invert xmm9
 		vmulps xmm9, xmm9, xmm11	;xmm9 = s.color*coef
 		vmovss xmm10, [rcx+32]			;xmm10 = intensity
 		vpshufd xmm10, xmm10, 0h00	;xmm10 = intensity|intensity|intensity|intensity|
 		vmulps xmm9, xmm9, xmm10	;xmm9 = s.color*coef*l.intensity
 		vmovdqu xmm10, [rcx]			; xmm10 = l.color
-		vpshufd xmm10, xmm10, 0b00011011
+		invert xmm10
 		vmulps xmm9, xmm9, xmm10	;xmm9 = s.color*coef*l.intensity*l.color
 
 		vaddps xmm15, xmm15, xmm9
@@ -344,7 +344,64 @@ tracer_asm:
 		vcomiss xmm13, [zero]
 		jb .exit_triangle_ray_intersection
 
-		vmovdqu xmm15, [white]
+		vector_sub xmm9, xmm0, xmm8			; xmm9 = tracer.origin - intersection
+		vector_dot_product xmm9, xmm9, xmm9	; xmm9 = distance squared
+		vcomiss xmm9, xmm2
+		ja .exit_triangle_ray_intersection	; si no es el elemento mas cercano salto
+
+		vmovss xmm2, xmm9
+		movdqu xmm15, [black]
+
+		mov r13d, [rdi + 40]		;r13d = light_count
+		mov r14, [rdi + 8]			; r14 = lights
+		xor r15d, r15d				; r15d = lights_i
+		mov rcx, r14				; rcx = lights[lights_i]
+
+	.light_loop2:
+
+		cmp r15d, r13d
+		je .exit_triangle_ray_intersection	
+
+		vmovdqu xmm9, [rcx+16]		; xmm9 = light.center
+		invert xmm9
+		vsubps xmm9, xmm9, xmm8		; xmm9 = intersection_to_light = light.center - intersection
+
+		vmovdqu xmm10, [r12+16]
+		invert xmm10
+		vmovdqu xmm11, [r12+32]
+		invert xmm11
+		vmovdqu xmm12, [r12+48]
+		invert xmm12
+
+		vector_sub xmm11, xmm12, xmm11	; xmm11 = v1-v2
+		vector_sub xmm12, xmm12, xmm10	; xmm10 = v1-v3
+		vector_cross_product xmm10, xmm12, xmm11 ;xmm12 = cross(v1-v2, v1-v3)
+
+		vector_dot_product xmm11, xmm9, xmm10	; xmm11 = dot(intersection_to_light, normal)
+		vector_2norm xmm12, xmm9
+		vdivps xmm11, xmm11, xmm12
+		vector_2norm xmm12, xmm10
+		vdivps xmm11, xmm11, xmm12	; xmm11 = coef|coef|coef|coef
+		vmovdqu xmm12, [zero]
+		vsubps xmm12, xmm12, xmm11
+		vmaxps xmm11, xmm11, xmm12
+
+		vmovdqu xmm9, [r12]			;xmm9 = s.color	
+		invert xmm9
+		vmulps xmm9, xmm9, xmm11	;xmm9 = s.color*coef
+		vmovss xmm10, [rcx+32]			;xmm10 = intensity
+		vpshufd xmm10, xmm10, 0h00	;xmm10 = intensity|intensity|intensity|intensity|
+		vmulps xmm9, xmm9, xmm10	;xmm9 = s.color*coef*l.intensity
+		vmovdqu xmm10, [rcx]			; xmm10 = l.color
+		invert xmm10
+		vmulps xmm9, xmm9, xmm10	;xmm9 = s.color*coef*l.intensity*l.color
+
+		vaddps xmm15, xmm15, xmm9
+		
+	.shadow2:
+		inc r15d
+		add rcx, 36
+		jmp .light_loop2
 
 	.exit_triangle_ray_intersection:
 		inc r10d
@@ -354,7 +411,7 @@ tracer_asm:
 
 	.exit_triangle_loop:
 
-		vpshufd xmm15, xmm15, 0b00011011
+		invert xmm15
 		vmovdqu [rax], xmm15  
 
 		
