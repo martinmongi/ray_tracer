@@ -78,13 +78,36 @@ int ray_sphere_intersection(ray r, sphere s, vector* intersection){
 }
 
 int same_side_semiplane(vector p1, vector p2, vector a, vector b){
+	
+	
 	//Returns true if p1 and p2 are on the same side of the plane divided by the line that goes through a and b
-	vector cp1 = vector_cross_product(vector_sub(b,a), vector_sub(p1,a));
-	vector cp2 = vector_cross_product(vector_sub(b,a), vector_sub(p2,a));
-	float res = vector_dot_product(cp1, cp2);
+	// printf("input\n");
+	// print_vector(p1);
+	// print_vector(p2);
+	// print_vector(a);
+	// print_vector(b);
+	// printf("subs\n");
+	vector ba = vector_sub(b,a);
+	vector p1a = vector_sub(p1,a);
+	vector p2a = vector_sub(p2,a);
+
+	// print_vector(ba);
+	// print_vector(p1a);
+	// print_vector(p2a);
+	vector cp1 = vector_cross_product(ba, p1a);
+	vector cp2 = vector_cross_product(ba, p2a);
+	
+	// printf("cps\n");
 	// print_vector(cp1);
 	// print_vector(cp2);
-	// printf("%f\n", res);
+
+	float res = vector_dot_product(cp1, cp2);
+	// printf("res = %f\n", res);
+	// printf("======================\n");
+	
+	// print_vector(cp1);
+	// print_vector(cp2);
+	
 	return (res >= 0);
 }
 
@@ -102,9 +125,9 @@ int ray_triangle_intersection(ray r, triangle t, vector* intersection){
 
 	if(d < 0) return 0;
 
-	printf("d = %f\n", d);
+	//printf("d = %f\n", d);
 	*intersection = vector_sum(vector_scale(d,r.direction),r.origin);
-	print_vector((*intersection));
+	//print_vector((*intersection));
 
 	/*I have intersected the plane the triangle is contained with the ray
 	Now I have to see if that point is inside the triangle*/

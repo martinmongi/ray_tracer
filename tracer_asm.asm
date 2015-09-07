@@ -9,8 +9,8 @@
 %endmacro
 
 %macro vector_scale 3
-	vpshufd %1, %2, 0h00
-	vmulps %1, %1, %3
+	vpshufd %2, %2, 0h00
+	vmulps %1, %2, %3
 %endmacro
 
 %macro vector_dot_product 3
@@ -122,7 +122,7 @@ tracer_asm:
 		vmulss xmm1, xmm1, [m_one]	;xmm1 = -(row + .5) * step
 		vaddss xmm1, xmm1, xmm3		;xmm1 = -(row + .5) * step + window_height/2
 
-		vpshufd xmm1, xmm1, 0b11000100 ; xmm1 = x|y|x|yd
+		vpshufd xmm1, xmm1, 0b11000100 ; xmm1 = x|y|x|yd	
 
 		vmovss xmm2, [rdi+52]
 
@@ -286,6 +286,65 @@ tracer_asm:
 		vmovdqu xmm8, xmm1				; xmm8 = r.direction
 		vector_scale xmm10, xmm9, xmm8	; xmm8 = scale(d,r.direction)
 		vector_add xmm8, xmm10, xmm0		; xmm8 = intersection = scale(d,r.direction) + r.origin
+
+		;==== same side intersection intersection v1 v2 v3
+
+		vmovdqu xmm9, [r12+16]			;xmm9 = v1
+		vmovdqu xmm10, [r12+32]			;xmm10 = v2
+		vmovdqu xmm11, [r12+48]			;xmm11 = v3
+		invert xmm9
+		invert xmm10
+		invert xmm11
+
+		vector_sub xmm14, xmm11, xmm10				; xmm14 = ba = v3 - v2
+		vector_sub xmm13, xmm8, xmm10				; xmm13 = p1a = intersection - v2
+		vector_cross_product xmm12, xmm14, xmm13	; xmm12 = cp1 = cross_product(ba,p1a)
+		vector_sub xmm13, xmm9, xmm10				; xmm13 = p2a = v1 - v2
+		vector_cross_product xmm9, xmm14, xmm13		; xmm9 = cp2 = cross_product(ba,p2a)
+		vector_dot_product xmm13, xmm12, xmm9		; xmm12 = dot(cp1, cp2)
+
+		vcomiss xmm13, [zero]
+		jb .exit_triangle_ray_intersection
+
+		;==== same side intersection intersection v2 v3 v1
+
+		vmovdqu xmm9, [r12+32]			;xmm9 = v1
+		vmovdqu xmm10, [r12+48]			;xmm10 = v2
+		vmovdqu xmm11, [r12+16]			;xmm11 = v3
+		invert xmm9
+		invert xmm10
+		invert xmm11
+
+		vector_sub xmm14, xmm11, xmm10				; xmm14 = ba = v3 - v2
+		vector_sub xmm13, xmm8, xmm10				; xmm13 = p1a = intersection - v2
+		vector_cross_product xmm12, xmm14, xmm13	; xmm12 = cp1 = cross_product(ba,p1a)
+		vector_sub xmm13, xmm9, xmm10				; xmm13 = p2a = v1 - v2
+		vector_cross_product xmm9, xmm14, xmm13		; xmm9 = cp2 = cross_product(ba,p2a)
+		vector_dot_product xmm13, xmm12, xmm9		; xmm12 = dot(cp1, cp2)
+
+		vcomiss xmm13, [zero]
+		jb .exit_triangle_ray_intersection
+
+		;==== same side intersection intersection v3 v1 v2
+
+		vmovdqu xmm9, [r12+48]			;xmm9 = v1
+		vmovdqu xmm10, [r12+16]			;xmm10 = v2
+		vmovdqu xmm11, [r12+32]			;xmm11 = v3
+		invert xmm9
+		invert xmm10
+		invert xmm11
+
+		vector_sub xmm14, xmm11, xmm10				; xmm14 = ba = v3 - v2
+		vector_sub xmm13, xmm8, xmm10				; xmm13 = p1a = intersection - v2
+		vector_cross_product xmm12, xmm14, xmm13	; xmm12 = cp1 = cross_product(ba,p1a)
+		vector_sub xmm13, xmm9, xmm10				; xmm13 = p2a = v1 - v2
+		vector_cross_product xmm9, xmm14, xmm13		; xmm9 = cp2 = cross_product(ba,p2a)
+		vector_dot_product xmm13, xmm12, xmm9		; xmm12 = dot(cp1, cp2)
+
+		vcomiss xmm13, [zero]
+		jb .exit_triangle_ray_intersection
+
+		vmovdqu xmm15, [white]
 
 	.exit_triangle_ray_intersection:
 		inc r10d
