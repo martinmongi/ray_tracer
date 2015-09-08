@@ -1,0 +1,75 @@
+\section{Elementos de matemática y física}
+
+\subsection{Rayo}
+
+El primer elemento que vamos a modelar va a ser el rayo. Para esto, vamos a asumir que la luz viaja en línea recta, por lo cual, podemos modelarlo como una recta, definiendo a $r_0 \in \mathbb{R}^3$ como su punto de origen y $r_d \in \mathbb{R}^3$ como su dirección Entonces, podemos definir a todos los puntos por los que pasa el rayo como:
+
+\begin{equation}
+P = \{p:(\exists t \in \mathbb{R}_{\geq 0}: p = r_0 + t r_d)\}
+\end{equation}
+
+\subsection{Esfera}
+
+La primer primitiva que desarrollamos es la esfera. Para cada esfera, definimos a $s_c \in \mathbb{R}^3$ como su centro y $s_r \in \mathbb{R}$ como su radio. Entonces, tenemos que todos los puntos de la superficie de la esfera pueden ser definidos como:
+
+\begin{equation}
+P = \{p: ||p-s_c||_2 = s_r\}
+\end{equation}
+
+\subsubsection{Intersección con el rayo}
+
+El paso siguiente es verificar si un rayo tiene intersección con la esfera. Para esto, vamos a buscar si hay algún punto que cumpla las definiciones de ambos elementos. Combinando las ecuaciones tenemos:
+
+\begin{equation}
+||r_0 + t r_d - s_c||_2^2 = s_r^2
+\end{equation}
+\begin{equation}
+(t r_d + r_0 - s_c) . (t r_d + r_0 - s_c) = s_r^2
+\end{equation}
+\begin{equation}
+t^2 (r_d.r_d) + 2t(r_d.(r_0 - s_c)) + (r_0 - s_c). (r_0 - s_c) - s_r^2 = 0
+\end{equation}
+
+Vemos claramente que queda una ecuación cuadrática. Resolviendo por $t$ y reemplazando en la ecuación del rayo vemos que hay tres casos posibles:
+\begin{itemize}
+\item La ecuación tiene dos soluciones. Luego, el rayo tiene dos intersecciones y por lo tanto, no interseca a la esfera tangencialmente.
+\item La ecuación tiene una única solución. Por lo tanto, el rayo interseca a la esfera tangencialmente.
+\item La ecuación no tiene soluciones. Por lo tanto, el rayo no interseca a la esfera.
+\end{itemize}
+
+\subsection{Triángulo}
+
+Luego, tenemos que modelar el triángulo. Para esto, definimos al triángulo por sus vértices $v_1,v_2,v_3 \in \mathbb{R}^3$. Primero, sabemos que todos los puntos en el triángulo están en el plano en el cual el triángulo está incluido. A este plano lo podemos definir por su vector normal \footnote{El vector normal de un plano es un vector que es perpendicular a todos los puntos del plano.} $n$. Como sabemos que sus tres vértices, y por consiguiente sus lados, están incluidos en el plano, podemos calcular a la normal calculando un vector perpendicular a dos de sus lados:
+
+\begin{equation}
+n = (v_1 - v_2) \times (v_1 - v_3)
+\end{equation}
+
+\subsubsection{Intersección con el rayo}
+
+Luego, tenemos que verificar si el rayo interseca al plano. Entonces, necesitamos los puntos del rayo que sea perpendicular a la normal. Combinando las ecuaciones tenemos:
+
+\begin{equation}
+(tr_d + r_0 - v_1) . n = 0
+\end{equation}
+\begin{equation}
+tr_d . n + (r_0 - v_1) . n = 0
+\end{equation}
+\begin{equation}
+t = \dfrac{(v_1 - r_0) . n}{r_d . n}
+\end{equation}
+
+Vemos que hay dos casos: $r_d . n = 0$, entonces el rayo es paralelo al plano, por lo tanto, no se intersecan, y $r_d . n \neq 0$, por lo tanto la ecuación tiene una solución y reemplazando en la ecuación del rayo, tenemos la intersección del plano y el rayo.\\
+Luego, necesitamos ver que el punto de intersección esté efectivamente dentro del triángulo. Para esto, alcanza con comprobar que para cada par de vértices del triángulo, el otro vértice está del mismo lado que el punto de intersección. Para esto, supongamos que tenemos dos semiplanos divididos por una recta que pasa por los puntos $a$ y $b$, y queremos ver si los puntos $p_1$ y $p_2$ están en el mismo semiplano. Esto pasa sí y solo sí se cumple lo siguiente:
+
+\begin{equation}
+((b - a) \times (p_1 - a)) . ((b - a) \times (p_2 - a)) \geq 0
+\end{equation}
+
+\subsection{Superficie de Lambert}
+
+En física, se dice que una superficie es de Lambert o lambertiana, cuando, al recibir luz, esta es reflejada para todas las direcciones con la misma intensidad. Por lo tanto, la intensidad de la luz apreciada no cambia al cambiar el punto de visa, de la forma que lo haría una superficie reflectiva. Una superficie de Lambert es, entonces, una superfice de reflexión difusa ideal. De esta forma, siendo $L$ el vector de la superficie a la fuente de luz, $N$ la normal de la superficie, $C$ el color de la superficie y $I_L$ la intensidad de la fuente de luz, podemos calcular la intensidad de la luz reflejada de la siguiente forma:
+
+\begin{equation}
+I_D = (L.N)CI_L
+\end{equation}

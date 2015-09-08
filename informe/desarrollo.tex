@@ -1,0 +1,63 @@
+\section{Desarrollo del algoritmo}
+
+\subsection{Entrada de datos}
+
+Al inicio del programa, este recibe datos a través de un archivo de entrada tales como: nombre y tamaño de imagen de destino, distancia focal de la cámara simulada, cantidad de luces, cantidad de esferas y cantidad de triángulos. Luego, lee las propiedades de cada objeto: intensidad, color y posición para las luces, color, posición y radio para las esferas, y color y posición de los vértices para los triángulos.
+
+\subsection{Trazado de rayos}
+
+Luego, el programa procede a calcular los rayos. Suponiendo que la imagen de destino tiene que ser de $n$ píxeles de alto por $m$ píxeles de ancho, armamos una grilla de ese tamaño, la cual colocamos a la distancia focal de la camara que el programa recibió. Para simplicidad del código, para todos los rayos trazados desde la cámara, tomaremos $r_o = \vec{0}$. Entonces, tomamos los puntos de la grilla como las direcciones de los diferentes rayos que trazaremos.\\
+Ahora, necesitamos saber si el rayo se interseca con algún objeto como previamente vimos y, en ese caso, saber cual es el objeto más cercano con el cual se interseca, ya que es el que se vería desde la vista de la cámara. Luego de esto, procedemos a calcular el color del píxel. Para simplicidad del código, suponemos que todas las superficies son lambertianas. Cómo la luz es aditiva, calculamos la luz proveniente de cada una de las fuentes de luz con la fórmula previamente vista. El algoritmo sigue el siguiente pseudocódigo:
+
+\begin{algorithm}
+\DontPrintSemicolon
+
+\SetKwInOut{input}{Input}
+\SetKwInOut{output}{Output}
+\SetKwInOut{signature}{Signatura}
+
+\input{	$\mathbf{i_w}$ ancho de la imagen\\
+		$\mathbf{i_h}$ alto de la imagen\\
+		$\mathbf{fd}$ distancia focal de la cámara simulada\\
+		$\mathbf{Lights}$ luces\\
+		$\mathbf{Spheres}$ esferas\\
+		$\mathbf{Triangles}$ triángulos\\
+		}
+
+\output{$\mathbf{I}$ imagen}
+
+$relation \gets \dfrac{i_w}{i_h}$\;
+$w_h \gets \dfrac{35}{\sqrt{relation^2+1}}$\;
+$w_w \gets relation \times w_h$\;
+$step \gets \dfrac{w_w}{i_w}$\;
+
+\For{$row \gets 1$ \KwTo $i_h$}{
+	\For{$col \gets 1$ \KwTo $i_w$}{
+		Ray $r$\;
+		$r_{d,x} \gets step \times (col + 0.5) - \frac{w_w}{2}$\;
+		$r_{d,x} \gets -step \times (col + 0.5) + \frac{w_w}{2}$\;
+		$r_{d,z} \gets fd$\;
+		$r_o \gets \vec{0}$\;
+		$nearest \gets \infty$\;
+		\ForAll{$o \in Spheres \cup Triangles$}{
+			\If{$intersect(o,r)$}{
+				$p \gets intersection(o,r)$\;
+				\If{$distance(p,r_o) < nearest$}{
+					$nearest \gets distance(p,r_o)$\;
+					$I_{row,col} \gets \vec{0}$\;
+					\ForAll{$l \in Lights$}{
+						$I_{row,col} \gets I_{row,col} + reflection(l, o$)\;
+					}	
+				}
+			}
+		}
+		
+	}
+}
+\Return $I$
+\caption[]{Trazado de rayos}
+\end{algorithm}
+
+\subsection{Complejidad temporal}
+
+Como se ve en el algoritmo, el cíclo de las líneas entre 19 y 21 se ejecuta $O(|l|)$ veces. Como el cíclo entre las líneas 13 y 24 se ejecuta $O(|s|+|t|)$ veces, tiene un costo de $O((|s|+|t|) \times |l|)$ Al mismo tiempo, las líneas entre 7 y 24, se ejecutan $O(i_h \times i_w)$ veces, dando una complejidad temporal total de $O((|s|+|t|) \times |l| \times i_w \times i_h)$.

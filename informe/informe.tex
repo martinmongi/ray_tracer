@@ -1,25 +1,20 @@
 \documentclass[a4paper]{article}
 
-\usepackage[spanish]{babel}
 \usepackage[utf8]{inputenc}
+\usepackage[spanish,activeacute]{babel}
+\usepackage{a4wide}
 \usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage[colorinlistoftodos]{todonotes}
-\usepackage{geometry}
-\usepackage{multicol}
-\usepackage{makeidx}
-\usepackage{makecell}
-\usepackage{pbox}
-\usepackage{hyperref}
-\usepackage{caption}
+\usepackage{amsthm}
 \usepackage{amsfonts}
-\usepackage{amssymb}
-\usepackage[utf8]{inputenc}
-\usepackage{verbatim}
-\usepackage{enumerate}
-\usepackage{algpseudocode}
-\usepackage{chessboard}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{tkz-graph}
+\usepackage{todonotes}
+%\usepackage[lined, ruled, linesnumbered]{algorithm2e}
+\usepackage[lined, ruled, linesnumbered]{algorithm2e}
+\usepackage{caption}	% Para agregar captions de table a entornos tabular
 \usepackage{float}
+\usepackage{url}
 \restylefloat{table}
 
 
@@ -33,11 +28,17 @@
 \input{caratula.tex}
 \pagenumbering{arabic}
 \input{abstract.tex}
-
+\hrulefill
 \tableofcontents
 
 \clearpage
-
-\section{Introducción}
+\input{introduccion.tex}
+\clearpage
+\input{fundamentos.tex}
+\input{desarrollo.tex}
+\clearpage
+\input{vectorizacion.tex}
+\clearpage
+\input{experimentacion.tex}
 
 \end{document}
