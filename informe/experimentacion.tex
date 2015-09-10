@@ -38,6 +38,6 @@ $i_w \times i_h$ & \textbf{C} & \textbf{SIMD} & \textbf{C/SIMD} \\\hline
 
 \end{tabular}
 \end{center}
-
+\clearpage
 Como vemos en la figura 2, la implementación SIMD es más de 6 veces más rápida que la implementación C. También vemos que la diferencia de performance se mantiene constante cambiando la resolución. Esperabamos que el aumento de performance fuera de $3x$ aproximadamente, ya que en la mayoría de las operaciones, se manejan tres variables al mismo tiempo en vez de una. Entonces, consideramos que esa mejora de la performance mayor se debe al cambio de las funciones a macros y a que, programando a bajo nivel, se puede programar más eficientemente que en C al poner todas las variables en registros y eliminando las que no se necesitan.
 También, notamos dos saltos en tiempo de ejecución considerables, a partir de $5 \times 10^6$ píxeles y a partir de $9 \times 10^6$. Consideramos que esto es porque a partir de esos números los datos dejan de caber en la memoria caché del procesador, entonces el programa tarda más tiempo en recuperar los datos de memoria.
