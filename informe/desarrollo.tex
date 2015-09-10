@@ -9,6 +9,7 @@ Al inicio del programa, este recibe datos a través de un archivo de entrada tal
 Luego, el programa procede a calcular los rayos. Suponiendo que la imagen de destino tiene que ser de $n$ píxeles de alto por $m$ píxeles de ancho, armamos una grilla de ese tamaño, la cual colocamos a la distancia focal de la camara que el programa recibió. Para simplicidad del código, para todos los rayos trazados desde la cámara, tomaremos $r_o = \vec{0}$. Entonces, tomamos los puntos de la grilla como las direcciones de los diferentes rayos que trazaremos.\\
 Ahora, necesitamos saber si el rayo se interseca con algún objeto como previamente vimos y, en ese caso, saber cual es el objeto más cercano con el cual se interseca, ya que es el que se vería desde la vista de la cámara. Luego de esto, procedemos a calcular el color del píxel. Para simplicidad del código, suponemos que todas las superficies son lambertianas. Cómo la luz es aditiva, calculamos la luz proveniente de cada una de las fuentes de luz con la fórmula previamente vista. El algoritmo sigue el siguiente pseudocódigo:
 
+
 \begin{algorithm}
 \DontPrintSemicolon
 
@@ -57,7 +58,7 @@ $step \gets \dfrac{w_w}{i_w}$\;
 \Return $I$
 \caption[]{Trazado de rayos}
 \end{algorithm}
-
+\clearpage
 \subsection{Complejidad temporal}
 
 Como se ve en el algoritmo, el cíclo de las líneas entre 19 y 21 se ejecuta $O(|l|)$ veces. Como el cíclo entre las líneas 13 y 24 se ejecuta $O(|s|+|t|)$ veces, tiene un costo de $O((|s|+|t|) \times |l|)$ Al mismo tiempo, las líneas entre 7 y 24, se ejecutan $O(i_h \times i_w)$ veces, dando una complejidad temporal total de $O((|s|+|t|) \times |l| \times i_w \times i_h)$.

@@ -1,0 +1,5 @@
+\section{Conclusiones}
+
+
+En este trabajo, implementamos una versión simple de un algoritmo de trazado de rayos con una complejidad temporal de $O((|s|+|t|) \times |l| \times |i_w| \times |i_h|)$. Luego, desarrollamos una implementación que hace uso de vectorización y las instrucciones SIMD provistas por la arquitectura x86-64 de Intel. Este algoritmo no mejora la complejidad asintótica del algoritmo -algo que se podría conseguir con estructuras de datos avanzadas-. Sin embargo, hemos conseguido mejorar la constante asociada que es ocultada por la cota superior asintótica por un factor de 6. Este tipo de implementación tiene desventajas, tales como la complejidad del código asociado, dificultad en la depuración y poca portabilidad del código. Sin embargo, creemos que en procesos donde un incremento de performance tiene un beneficio alto, tales como algoritmos de \emph{rendering} de programas comerciales de diseño, ingeniería, etc.
+En conclusión, creemos que este tipo de implementación es deseable cuando se trata de algoritmos paralelizables facilmente, tales como aplicaciones gráficas o sobre vectores.

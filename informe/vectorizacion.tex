@@ -2,9 +2,9 @@
 
 El principal objetivo de este trabajo es comprobar las mejoras en performance que se consiguen con la utilización del modelo de instrucciones SIMD (\emph{Single Instruction Multiple Data}) de la arquitectura x86-64 de los procesadores Intel. Este tipo de instrucciones consiguen acelerar las operaciones en los casos en los cuales se necesita aplicar la misma operación a varios datos, consiguiendo efectuar la misma operación en una fracción de los ciclos de procesador necesarios con el modelo convencional. En el caso particual de nuestro algoritmo, hay varias operaciones que pueden ser aceleradas con esta técnica. Por ejemplo, casi cualquier operación con vectores, tales como suma, resta, producto interno, producto cruz, cálculo de norma, etc. puede ser acelerada sin muchos inconvenientes, ya que son operaciones que ejecutan varias veces la misma operación con datos diferentes. También, un ejemplo de esto son las operaciones sobre los píxeles de color. Como los píxeles se guardan en ternas RGB (\emph{red}, \emph{green}, \emph{blue}), las operaciones generalmente son paralelas para cada canal del sistema de color. Como ejemplo, mostramos la cantidad de instrucciones necesarias para hacer algunas de las operaciónes en las dos implementaciones comparadas:\\
 
-{\center
+\begin{center}
 \begin{tabular}[H]{l|r|r}
-& Instrucciones compiladas desde C & Instrucciones SIMD\\\hline
+& \textbf{C} & \textbf{SIMD}\\\hline
 Suma de vectores & 35 & 1 \\
 Resta de vectores & 35 & 1\\
 Producto escalar & 25 & 2\\
@@ -12,6 +12,8 @@ Producto interno & 25 & 3\\
 Norma 2 de un vector & 26 & 4\\
 Producto cruz & 44 & 7\\
 \end{tabular}
-}\\[1cm]
+\end{center}
+
+\vspace{0.5cm}
 
 Además de esta optimización, todas estas operaciones fueron realizadas con macros en la implementación SIMD, lo que reduce el \emph{overhead} por el llamado a funciones, aunque consideramos que el impacto es mínimo en la performance.

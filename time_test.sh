@@ -1,12 +1,13 @@
 #!/bin/bash
-	rm times.out
+	rm times_c.out
+	rm times_asm.out
 	for t in `seq 25`;
 	do	
-        ./ray_tracer input/sphere.in 0 > /dev/null 2>> times.out
+        ./ray_tracer test.in 0 > /dev/null 2>> times_c.out
     done
-    cat times.out | python3 average.py
+    cat times_c.out | python3 average.py
     for t in `seq 25`;
 	do	
-        ./ray_tracer input/sphere.in 1 > /dev/null 2>> times.out
+        ./ray_tracer test.in 1 > /dev/null 2>> times_asm.out
     done
-    cat times.out | python3 average.py
+    cat times_asm.out | python3 average.py
