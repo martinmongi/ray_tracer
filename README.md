@@ -13,9 +13,9 @@ The main aim is to appreciate the advantages of the SIMD instruction set, in rel
 Usage:
 
 Program should be executed with:
-
+```
 ./ray_tracer sphere.in 0
-
+```
 The input file will be a text file containing the scene information. It will be passed to the program as the first argument after the executable. Also, the program will receive a second parameter indicating which version of the algorithm it should run (0 for C implementation, 1 for optimized SIMD implementation).
 
 Firstly, the input file will begin with 3 lines. First one will have the name of the output image. Second line will have two numbers: image width and height, separated by a space. Third line will have the simulated focal distance of the camera. Camera will be located at (0,0,0).
