@@ -26,9 +26,7 @@ Secondly, there will be a line with the sphere count. Then, the description of e
 Finally, there will be a line with the triangle count. Then, the description of every triangle. Every triangle will be described with the following values in order, separated by a space: color (rgb), position of vertex 1 (x,y,z), position of vertex 2 (x,y,z), position of vertex 3 (x,y,z).
 
 Example:
-
-#======Start of file=====
-
+```
 render.pgm
 640 480
 35
@@ -51,7 +49,6 @@ render.pgm
 0 -20 100		#vertex 1 (x,y,z)
 20 -20 134.64	#vertex 2 (x,y,z)
 -20 -20 134.64	#vertex 3 (x,y,z)
-
-#======End of file=====
+```
 
 Output will be a PGM image. This keeps the code simple and focusing in the objective of the project. It can be converted later with several applications in every platform. It could be later implemented using existing libraries
