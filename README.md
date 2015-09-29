@@ -21,9 +21,10 @@ The input file will be a text file containing the scene information. It will be 
 Firstly, the input file will begin with 3 lines. First one will have the name of the output image. Second line will have two numbers: image width and height, separated by a space. Third line will have the simulated focal distance of the camera. Camera will be located at (0,0,0).
 
 Secondly, the input file will describe the objects of the scene. Objects fall into three categories: lights, spheres and triangles.
-Firstly, there will be a line with the light count. Then, the description of every light. Every light will be described with the following values in order, separated by a space: intensity, color (rgb), position (x,y,z).
-Secondly, there will be a line with the sphere count. Then, the description of every sphere. Every sphere will be described with the following values in order, separated by a space: radius, color (rgb), position (x,y,z).
-Finally, there will be a line with the triangle count. Then, the description of every triangle. Every triangle will be described with the following values in order, separated by a space: color (rgb), position of vertex 1 (x,y,z), position of vertex 2 (x,y,z), position of vertex 3 (x,y,z).
+
++ Firstly, there will be a line with the light count. Then, the description of every light. Every light will be described with the following values in order, separated by a space: intensity, color (rgb), position (x,y,z).
++ Secondly, there will be a line with the sphere count. Then, the description of every sphere. Every sphere will be described with the following values in order, separated by a space: radius, color (rgb), position (x,y,z).
++ Finally, there will be a line with the triangle count. Then, the description of every triangle. Every triangle will be described with the following values in order, separated by a space: color (rgb), position of vertex 1 (x,y,z), position of vertex 2 (x,y,z), position of vertex 3 (x,y,z).
 
 Example:
 ```
